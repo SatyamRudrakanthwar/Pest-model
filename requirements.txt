@@ -1,6 +1,5 @@
-streamlit
-opencv-python
+streamlit-webrtc
+opencv-python-headless
 ultralytics
 supervision
-pandas
-Pillow
+opencv-contrib-python-headless
