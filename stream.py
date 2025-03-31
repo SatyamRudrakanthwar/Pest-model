@@ -4,7 +4,6 @@ import os
 import cv2
 import glob
 import shutil
-import zipfile
 import pandas as pd
 from ultralytics import YOLO
 import supervision as sv
@@ -12,7 +11,7 @@ from PIL import Image
 
 # Set up Streamlit UI
 st.set_page_config(page_title="AgriSavant", layout="wide")
-st.title("\U0001F33F AgriSavant")
+st.title("🌿 AgriSavant")
 
 st.write(" ")
 st.markdown("---")  # Horizontal Separator
@@ -20,8 +19,8 @@ st.write(" ")
 
 # File Upload Section
 col1, col2 = st.columns([1, 1])
-image_file = col1.file_uploader("\U0001F4F8 Select an Image", type=["jpg", "jpeg", "png"], key="image")
-folder_file = col2.file_uploader("\U0001F4C1 Select a Folder (Zip)", type=["zip"], key="folder")
+image_file = col1.file_uploader("📸 Select an Image", type=["jpg", "jpeg", "png"], key="image")
+folder_file = col2.file_uploader("📁 Select a Folder (Zip)", type=["zip"], key="folder")
 
 # Initialize model
 model = YOLO("best.pt")
@@ -45,8 +44,6 @@ def process_image(image_path):
     
     return annotated_image, pest_counts, None
 
-processed_data = []
-
 # Processing uploaded image
 if image_file:
     image_path = f"temp_{image_file.name}"
@@ -59,74 +56,6 @@ if image_file:
             st.error(error)
         else:
             st.success("✅ Processing Completed!")
-            processed_data.append([image_file.name, str(pest_counts)])
-
-# Processing ZIP file
-if folder_file:
-    extract_path = "temp_extracted"
-    unprocessed_path = "Unprocessed_Images"
-    
-    # Create folders
-    if os.path.exists(extract_path):
-        shutil.rmtree(extract_path)
-    os.makedirs(extract_path)
-    if os.path.exists(unprocessed_path):
-        shutil.rmtree(unprocessed_path)
-    os.makedirs(unprocessed_path)
-    
-    # Extract ZIP
-    with zipfile.ZipFile(folder_file, 'r') as zip_ref:
-        zip_ref.extractall(extract_path)
-    
-    image_files = glob.glob(os.path.join(extract_path, "*.jpg")) + \
-                  glob.glob(os.path.join(extract_path, "*.jpeg")) + \
-                  glob.glob(os.path.join(extract_path, "*.png"))
-    
-    total_images = len(image_files)
-    processed_images = 0
-    failed_images = []
-    
-    st.write(f"Total images found: {total_images}")
-    
-    with st.spinner("⏳ Processing Images..."):
-        for img_path in image_files:
-            annotated_image, pest_counts, error = process_image(img_path)
-            if error:
-                failed_images.append(img_path)
-                shutil.move(img_path, os.path.join(unprocessed_path, os.path.basename(img_path)))
-            else:
-                processed_images += 1
-                processed_data.append([os.path.basename(img_path), str(pest_counts)])
-    
-    st.success(f"✅ Processed {processed_images}/{total_images} images successfully!")
-    if failed_images:
-        st.warning(f"⚠️ {len(failed_images)} images failed to process and were moved to 'Unprocessed_Images' folder.")
-        
-        # Create ZIP of failed images
-        failed_zip_path = "Unprocessed_Images.zip"
-        shutil.make_archive("Unprocessed_Images", 'zip', unprocessed_path)
-        
-        with open(failed_zip_path, "rb") as f:
-            st.download_button(
-                label="⬇️ Download Unprocessed Images",
-                data=f,
-                file_name="Unprocessed_Images.zip",
-                mime="application/zip"
-            )
-
-# Download Processed Data as Excel
-if processed_data:
-    df = pd.DataFrame(processed_data, columns=["Image Name", "Pest Count"])
-    excel_path = "Processed_Data.xlsx"
-    df.to_excel(excel_path, index=False)
-    
-    with open(excel_path, "rb") as f:
-        st.download_button(
-            label="⬇️ Download Processed Data (Excel)",
-            data=f,
-            file_name="Processed_Data.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
 
 # ---------- Analysis Section ----------
 st.markdown("---")
@@ -180,4 +109,4 @@ with col3:
         )
         
         if selected_card in ["Pest Detection Name", "Pest Count with Names"] and image_file and annotated_image is not None:
-            st.image(cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB), caption="Annotated Image", use_column_width=True)
+            st.image(cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB), caption="Annotated Image", use_container_width=True)
