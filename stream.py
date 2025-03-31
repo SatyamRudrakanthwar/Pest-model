@@ -109,4 +109,4 @@ with col3:
         )
         
         if selected_card in ["Pest Detection Name", "Pest Count with Names"] and image_file and annotated_image is not None:
-            st.image(cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB), caption="Annotated Image", use_column_width=True)
+            st.image(cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB), caption="Annotated Image", use_container_width=True)
